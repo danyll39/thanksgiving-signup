@@ -107,7 +107,12 @@ function doPost(e) {
 
     // The code this name already uses, if they've signed up before.
     var known = items.filter(function (i) { return i.code && norm_(i.who) === norm_(name); })[0];
-    if (known && known.code !== code) return fail(badCode_(key));
+    if (known && known.code !== code) {
+      var why = badCode_(key);
+      if (body.action === 'remove' || why.indexOf('Too many') === 0) return fail(why);
+      return fail('The name ' + known.who + ' is already taken. If that\'s you, enter your code. ' +
+                  'If not, add a middle initial or nickname. ' + why.replace('That code doesn\'t match. ', ''));
+    }
     if (known) PropertiesService.getScriptProperties().deleteProperty(key);
 
     if (body.action === 'claim') {
