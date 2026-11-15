@@ -1,6 +1,6 @@
 # Thanksgiving Sign-Up 🦃
 
-A one-page potluck sign-up list. Guests type their name and tap **"I'll bring it"** next to a dish, or add their own. Only the person whose name matches can remove a sign-up. Sign-ups are saved in a Google Sheet, so everyone sees the same list (it refreshes every 20 seconds).
+A one-page potluck sign-up list. Guests type their first and last name plus a 4-digit code they make up, then tap **"I'll bring it"** next to a dish, or add their own. Removing a sign-up needs the same name and code. After 5 wrong codes, that name is locked for 10 minutes. Codes are kept in the sheet's `code` column and never shown on the page. Sign-ups are saved in a Google Sheet, so everyone sees the same list (it refreshes every 20 seconds).
 
 ## Files
 

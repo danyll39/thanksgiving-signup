@@ -18,8 +18,10 @@ h1{font-family:Fraunces,Georgia,serif;font-weight:800;font-size:clamp(30px,8vw,4
 .bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#e0913a);border-radius:99px;transition:width .4s}
 .ptext{font-size:13px;color:var(--muted);margin-top:6px}
-.namebox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:20px;display:flex;gap:10px;align-items:center}
-.namebox label{font-weight:600;white-space:nowrap}
+.namebox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 120px;gap:10px}
+.namebox label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;min-width:0}
+.namebox .hint{grid-column:1/-1;font-size:12px;color:var(--muted);margin:0}
+@media(max-width:480px){.namebox{grid-template-columns:1fr 1fr}.namebox .codef{grid-column:1/-1}}
 input[type=text]{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
 input[type=text]:focus{outline:2px solid #e9b48f;border-color:var(--accent)}
 section{margin-bottom:22px}
@@ -63,18 +65,20 @@ button:disabled{opacity:.55;cursor:default}
   var ICONS = {Mains:'🦃',Sides:'🥔',Appetizers:'🧀',Desserts:'🥧',Drinks:'🍷',Supplies:'🍽️'};
   var ORDER = ['Mains','Sides','Appetizers','Desserts','Drinks','Supplies'];
   var items = null, busy = false, loadError = '';
-  var myName = '';
-  try { myName = localStorage.getItem('tg-name') || ''; } catch(e){}
+  var me = {first:'',last:'',code:''};
+  try { var saved = JSON.parse(localStorage.getItem('tg-me')||'{}'); me.first=saved.first||''; me.last=saved.last||''; me.code=saved.code||''; } catch(e){}
+  function fullName(){return (me.first.trim()+' '+me.last.trim()).trim();}
+  function remember(){try{localStorage.setItem('tg-me',JSON.stringify(me));}catch(e){}}
 
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function norm(s){return String(s||'').trim().toLowerCase().replace(/\s+/g,' ');}
-  function mine(who){return !!norm(myName)&&norm(who)===norm(myName);}
+  function mine(who){var n=fullName();return !!me.first.trim()&&!!me.last.trim()&&norm(who)===norm(n);}
   function refreshUndo(){document.querySelectorAll('[data-undo]').forEach(function(b){b.hidden=!mine(b.getAttribute('data-who'));});}
   function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show');},2800);}
 
   function render(){
     var root=document.getElementById('root');
-    var focused=document.activeElement, keep=focused&&focused.id==='me'?[focused.selectionStart,focused.selectionEnd]:null;
+    var focused=document.activeElement, keepId=focused&&/^(first|last|code)$/.test(focused.id)?focused.id:null, keep=keepId?[focused.selectionStart,focused.selectionEnd]:null;
     var addDrafts={}; document.querySelectorAll('form.add').forEach(function(f){var v=f.querySelector('input').value;if(v)addDrafts[f.getAttribute('data-cat')]=v;});
     var h='<div class="wrap"><header><div class="leaf">🍂</div><h1>'+esc(TITLE)+'</h1><p class="sub">'+esc(WHEN)+' · Pick a dish to bring</p>';
     if(items){
@@ -86,7 +90,10 @@ button:disabled{opacity:.55;cursor:default}
       h+='<p class="status'+(loadError?' err':'')+'">'+esc(loadError||'Loading the list…')+'</p></div>';
       root.innerHTML=h; return;
     }
-    h+='<div class="namebox"><label for="me">Your name</label><input id="me" type="text" maxlength="40" placeholder="e.g. Aunt Linda" value="'+esc(myName)+'"></div>';
+    h+='<div class="namebox"><label>First name<input id="first" type="text" maxlength="25" autocomplete="given-name" placeholder="Linda" value="'+esc(me.first)+'"></label>'+
+      '<label>Last name<input id="last" type="text" maxlength="25" autocomplete="family-name" placeholder="Smith" value="'+esc(me.last)+'"></label>'+
+      '<label class="codef">4-digit code<input id="code" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" value="'+esc(me.code)+'"></label>'+
+      '<p class="hint">Make up a 4-digit code the first time you sign up. You\'ll need it to remove your dish later.</p></div>';
     var cats=ORDER.slice(); items.forEach(function(i){if(cats.indexOf(i.cat)<0)cats.push(i.cat);});
     cats.forEach(function(cat){
       var list=items.filter(function(i){return i.cat===cat;});
@@ -102,7 +109,7 @@ button:disabled{opacity:.55;cursor:default}
     });
     h+='<p class="note">Your sign-up saves for everyone automatically.</p></div>';
     root.innerHTML=h;
-    if(keep){var me=document.getElementById('me');me.focus();try{me.setSelectionRange(keep[0],keep[1]);}catch(e){}}
+    if(keepId){var el=document.getElementById(keepId);el.focus();try{el.setSelectionRange(keep[0],keep[1]);}catch(e){}}
   }
 
   function load(){
@@ -118,7 +125,7 @@ button:disabled{opacity:.55;cursor:default}
   function send(payload){
     if(!SCRIPT_URL){toast('This list isn\'t connected yet.');return;}
     busy=true; render();
-    payload.name=myName.trim();
+    payload.first=me.first.trim(); payload.last=me.last.trim(); payload.code=me.code;
     fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
       .then(function(r){return r.json();})
       .then(function(d){ if(d.items)items=d.items; toast(d.ok?d.message:d.error); })
@@ -127,14 +134,19 @@ button:disabled{opacity:.55;cursor:default}
   }
 
   function needName(){
-    var el=document.getElementById('me');
-    myName=(el&&el.value.trim())||'';
-    if(!myName){toast('Type your name first 🙂');if(el)el.focus();return true;}
-    try{localStorage.setItem('tg-name',myName);}catch(e){}
+    var f=document.getElementById('first'), l=document.getElementById('last'), c=document.getElementById('code');
+    if(!me.first.trim()){toast('Type your first name 🙂');if(f)f.focus();return true;}
+    if(!me.last.trim()){toast('Type your last name 🙂');if(l)l.focus();return true;}
+    if(!/^\d{4}$/.test(me.code)){toast('Enter a 4-digit code (numbers only).');if(c)c.focus();return true;}
+    remember();
     return false;
   }
 
-  document.addEventListener('input',function(e){if(e.target.id==='me'){myName=e.target.value;try{localStorage.setItem('tg-name',myName.trim());}catch(x){}refreshUndo();}});
+  document.addEventListener('input',function(e){
+    var id=e.target.id; if(!/^(first|last|code)$/.test(id))return;
+    if(id==='code'){e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);}
+    me[id]=e.target.value; remember(); refreshUndo();
+  });
   document.addEventListener('click',function(e){
     var b=e.target.closest('button'); if(!b||busy||b.disabled)return;
     var id=b.getAttribute('data-claim'), uid=b.getAttribute('data-undo');
