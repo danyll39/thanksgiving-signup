@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thanksgiving Sign-Up</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>🦃 Thanksgiving Sign-Up</h1>
+      <p class="subtitle">Thursday, November 26 · Let us know you're coming and what you'll bring!</p>
+    </header>
+
+    <form id="signup-form">
+      <label>
+        Name
+        <input type="text" id="name" required placeholder="Your name">
+      </label>
+      <label>
+        Category
+        <select id="category">
+          <option>Main</option>
+          <option>Side</option>
+          <option>Dessert</option>
+          <option>Drinks</option>
+          <option>Supplies</option>
+        </select>
+      </label>
+      <label>
+        What are you bringing?
+        <input type="text" id="dish" required placeholder="e.g. Mashed potatoes">
+      </label>
+      <label>
+        Guests (including you)
+        <input type="number" id="guests" min="1" value="1">
+      </label>
+      <button type="submit">Sign me up</button>
+    </form>
+
+    <section>
+      <h2>Who's bringing what <span id="total"></span></h2>
+      <p id="empty" class="empty">No one has signed up yet. Be the first!</p>
+      <ul id="list"></ul>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
