@@ -91,7 +91,10 @@ function doPost(e) {
     var body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     var sh = getSheet_();
     var items = readItems_(sh);
-    var first = clean_(body.first, 25), last = clean_(body.last, 25);
+    // Names match no matter how they're capitalized ("ann lee" = "Ann Lee").
+    // New names get a capital first letter on each word; returning guests keep their first spelling.
+    var cap = function (w) { return w.replace(/(^|[\s\-'])(\S)/g, function (m, p1, p2) { return p1 + p2.toUpperCase(); }); };
+    var first = cap(clean_(body.first, 25)), last = cap(clean_(body.last, 25));
     var name = (first + ' ' + last).trim();
     var code = String(body.code || '');
     var now = new Date();
@@ -113,7 +116,11 @@ function doPost(e) {
       return fail('The name ' + known.who + ' is already taken. If that\'s you, enter your code. ' +
                   'If not, add a middle initial or nickname. ' + why.replace('That code doesn\'t match. ', ''));
     }
-    if (known) PropertiesService.getScriptProperties().deleteProperty(key);
+    if (known) {
+      PropertiesService.getScriptProperties().deleteProperty(key);
+      name = known.who;
+      first = name.split(' ')[0];
+    }
 
     if (body.action === 'claim') {
       var it = items.filter(function (i) { return i.id === body.id; })[0];
