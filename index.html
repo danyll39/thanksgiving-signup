@@ -93,7 +93,7 @@ button:disabled{opacity:.55;cursor:default}
     h+='<div class="namebox"><label>First name<input id="first" type="text" maxlength="25" autocomplete="given-name" placeholder="Linda" value="'+esc(me.first)+'"></label>'+
       '<label>Last name<input id="last" type="text" maxlength="25" autocomplete="family-name" placeholder="Smith" value="'+esc(me.last)+'"></label>'+
       '<label class="codef">4-digit code<input id="code" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" value="'+esc(me.code)+'"></label>'+
-      '<p class="hint">Make up a 4-digit code the first time you sign up. You\'ll need it to remove your dish later.</p></div>';
+      '<p class="hint">Add your 4-digit numerical code (numbers only). Make one up the first time you sign up, and use it again to remove a dish later. <b>Don\'t use anything sensitive</b>, like part of your Social Security number, a bank PIN or your phone passcode.</p></div>';
     var cats=ORDER.slice(); items.forEach(function(i){if(cats.indexOf(i.cat)<0)cats.push(i.cat);});
     cats.forEach(function(cat){
       var list=items.filter(function(i){return i.cat===cat;});
