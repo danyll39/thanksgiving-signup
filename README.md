@@ -1,17 +1,11 @@
 # Thanksgiving Sign-Up 🦃
 
-A simple sign-up page where guests add their name, what dish they're bringing, and how many people are coming.
+A one-page potluck sign-up list. Guests type their name and tap **"I'll bring it"** next to a dish, or add their own. Only the person whose name matches can remove a sign-up.
 
 ## Run it
 
-Open `index.html` in a browser. No build step needed.
-
-## Files
-
-- `index.html` – page layout and sign-up form
-- `style.css` – styles
-- `app.js` – adds, lists, and removes sign-ups
+Open `index.html` in a browser, or turn on GitHub Pages (Settings → Pages → Branch: `main`). No build step needed.
 
 ## Note
 
-Sign-ups are saved in the browser's `localStorage`, so each person only sees entries made on their own browser. To share one list between everyone, it would need a backend (e.g. Firebase, Supabase, or a small Express server).
+On GitHub Pages, sign-ups are not saved yet: everything lives in the page itself. To share one list between everyone, connect a storage service such as Firebase or a Google Sheet.

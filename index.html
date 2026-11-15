@@ -1,50 +1,143 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Thanksgiving Sign-Up</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thanksgiving Sign-Up</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap">
+<style id="app-style">
+:root{--bg:#fbf5ec;--card:#fffdf9;--ink:#3a2a1e;--muted:#8a7362;--line:#ecdfcd;--accent:#c4561f;--accent2:#8f3b14;--leaf:#6b7a2e;--soft:#f6e6d3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding:28px 18px 60px}
+header{text-align:center;margin-bottom:22px}
+.leaf{font-size:30px}
+h1{font-family:Fraunces,Georgia,serif;font-weight:800;font-size:clamp(30px,8vw,42px);line-height:1.05;margin:6px 0 8px;color:var(--accent2)}
+.sub{color:var(--muted);margin:0}
+.progress{margin:18px auto 0;max-width:360px}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#e0913a);border-radius:99px;transition:width .4s}
+.ptext{font-size:13px;color:var(--muted);margin-top:6px}
+.namebox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:20px;display:flex;gap:10px;align-items:center}
+.namebox label{font-weight:600;white-space:nowrap}
+input[type=text]{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input[type=text]:focus{outline:2px solid #e9b48f;border-color:var(--accent)}
+section{margin-bottom:22px}
+h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:21px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+h2 small{font-family:Inter,sans-serif;font-size:12px;font-weight:500;color:var(--muted);margin-left:auto}
+.list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.dish{flex:1;min-width:0}
+.dish b{font-weight:500;display:block}
+.who{font-size:13px;color:var(--leaf);font-weight:600}
+.open{font-size:13px;color:var(--muted)}
+.row.taken .dish b{color:var(--muted)}
+button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.claim{background:var(--accent);color:#fff}
+.claim:hover{background:var(--accent2)}
+.undo{background:var(--soft);color:var(--accent2)}
+.check{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;border:2px solid var(--line);font-size:14px;color:#fff}
+.row.taken .check{background:var(--leaf);border-color:var(--leaf)}
+.add{display:flex;gap:8px;padding:10px 14px;border-top:1px dashed var(--line);background:#fffaf3}
+.add input{padding:8px 10px;font-size:14px}
+.add button{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:7px 12px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;transition:transform .25s;pointer-events:none;max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.note{text-align:center;color:var(--muted);font-size:13px;margin-top:28px}
+.ro .claim,.ro .undo,.ro .add{display:none}
+</style>
 </head>
 <body>
-  <main>
-    <header>
-      <h1>🦃 Thanksgiving Sign-Up</h1>
-      <p class="subtitle">Thursday, November 26 · Let us know you're coming and what you'll bring!</p>
-    </header>
+<script id="state" type="application/json">{"title":"Thanksgiving Potluck","when":"Thursday, November 26","items":[{"id":"a1","cat":"Mains","name":"Turkey","who":""},{"id":"a2","cat":"Mains","name":"Ham","who":""},{"id":"a3","cat":"Mains","name":"Vegetarian main","who":""},{"id":"b1","cat":"Sides","name":"Mashed potatoes","who":""},{"id":"b2","cat":"Sides","name":"Stuffing","who":""},{"id":"b3","cat":"Sides","name":"Gravy","who":""},{"id":"b4","cat":"Sides","name":"Green bean casserole","who":""},{"id":"b5","cat":"Sides","name":"Sweet potatoes","who":""},{"id":"b6","cat":"Sides","name":"Mac and cheese","who":""},{"id":"b7","cat":"Sides","name":"Cranberry sauce","who":""},{"id":"b8","cat":"Sides","name":"Dinner rolls","who":""},{"id":"b9","cat":"Sides","name":"Salad","who":""},{"id":"c1","cat":"Appetizers","name":"Cheese and crackers","who":""},{"id":"c2","cat":"Appetizers","name":"Veggie tray","who":""},{"id":"c3","cat":"Appetizers","name":"Deviled eggs","who":""},{"id":"d1","cat":"Desserts","name":"Pumpkin pie","who":""},{"id":"d2","cat":"Desserts","name":"Apple pie","who":""},{"id":"d3","cat":"Desserts","name":"Pecan pie","who":""},{"id":"d4","cat":"Desserts","name":"Whipped cream / ice cream","who":""},{"id":"e1","cat":"Drinks","name":"Wine","who":""},{"id":"e2","cat":"Drinks","name":"Cider / soda","who":""},{"id":"e3","cat":"Drinks","name":"Coffee","who":""},{"id":"f1","cat":"Supplies","name":"Plates, cups and napkins","who":""},{"id":"f2","cat":"Supplies","name":"Ice","who":""},{"id":"f3","cat":"Supplies","name":"To-go containers","who":""}]}</script>
+<div id="root"></div>
+<div class="toast" id="toast"></div>
+<script id="app-script">
+(function(){
+  var STATE = JSON.parse(document.getElementById('state').textContent);
+  var ICONS = {Mains:'🦃',Sides:'🥔',Appetizers:'🧀',Desserts:'🥧',Drinks:'🍷',Supplies:'🍽️'};
+  var ORDER = ['Mains','Sides','Appetizers','Desserts','Drinks','Supplies'];
+  var STYLE = document.getElementById('app-style').textContent;
+  var APP = document.getElementById('app-script').textContent;
+  var artifact = null, readOnly = false, busy = false;
+  var myName = '';
+  try { myName = localStorage.getItem('tg-name') || ''; } catch(e){}
 
-    <form id="signup-form">
-      <label>
-        Name
-        <input type="text" id="name" required placeholder="Your name">
-      </label>
-      <label>
-        Category
-        <select id="category">
-          <option>Main</option>
-          <option>Side</option>
-          <option>Dessert</option>
-          <option>Drinks</option>
-          <option>Supplies</option>
-        </select>
-      </label>
-      <label>
-        What are you bringing?
-        <input type="text" id="dish" required placeholder="e.g. Mashed potatoes">
-      </label>
-      <label>
-        Guests (including you)
-        <input type="number" id="guests" min="1" value="1">
-      </label>
-      <button type="submit">Sign me up</button>
-    </form>
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function norm(s){return String(s||'').trim().toLowerCase().replace(/\s+/g,' ');}
+  function mine(who){return !!norm(myName)&&norm(who)===norm(myName);}
+  function refreshUndo(){document.querySelectorAll('[data-undo]').forEach(function(b){b.hidden=!mine(b.getAttribute('data-who'));});}
+  function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show');},2600);}
 
-    <section>
-      <h2>Who's bringing what <span id="total"></span></h2>
-      <p id="empty" class="empty">No one has signed up yet. Be the first!</p>
-      <ul id="list"></ul>
-    </section>
-  </main>
-  <script src="app.js"></script>
+  function render(){
+    var total=STATE.items.length, done=STATE.items.filter(function(i){return i.who;}).length;
+    var cats=ORDER.slice(); STATE.items.forEach(function(i){if(cats.indexOf(i.cat)<0)cats.push(i.cat);});
+    var h='<div class="wrap'+(readOnly?' ro':'')+'"><header><div class="leaf">🍂</div><h1>'+esc(STATE.title)+'</h1><p class="sub">'+esc(STATE.when)+' · Pick a dish to bring</p>'+
+      '<div class="progress"><div class="bar"><i style="width:'+(total?Math.round(done/total*100):0)+'%"></i></div><div class="ptext">'+done+' of '+total+' covered</div></div></header>';
+    if(!readOnly) h+='<div class="namebox"><label for="me">Your name</label><input id="me" type="text" maxlength="40" placeholder="e.g. Aunt Linda" value="'+esc(myName)+'"></div>';
+    cats.forEach(function(cat){
+      var items=STATE.items.filter(function(i){return i.cat===cat;});
+      var open=items.filter(function(i){return !i.who;}).length;
+      h+='<section><h2>'+(ICONS[cat]||'🍴')+' '+esc(cat)+'<small>'+(open?open+' open':'all set ✓')+'</small></h2><div class="list">';
+      items.forEach(function(i){
+        h+='<div class="row'+(i.who?' taken':'')+'"><span class="check">'+(i.who?'✓':'')+'</span><div class="dish"><b>'+esc(i.name)+'</b>'+
+          (i.who?'<span class="who">'+esc(i.who)+' is bringing this</span>':'<span class="open">Still needed</span>')+'</div>'+
+          (i.who?'<button class="undo" data-undo="'+i.id+'" data-who="'+esc(i.who)+'"'+(mine(i.who)?'':' hidden')+'>Remove</button>':'<button class="claim" data-claim="'+i.id+'">I\'ll bring it</button>')+'</div>';
+      });
+      h+='<form class="add" data-cat="'+esc(cat)+'"><input type="text" maxlength="60" placeholder="Bringing something else?"><button type="submit">Add</button></form></div></section>';
+    });
+    h+='<p class="note">'+(readOnly?'This list is view-only for you.':'Your sign-up saves for everyone automatically.')+'</p></div>';
+    document.getElementById('root').innerHTML=h;
+  }
+
+  function buildDoc(){
+    var json=JSON.stringify(STATE).replace(/</g,'\\u003c');
+    return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Thanksgiving Sign-Up</title>\n'+
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap">\n'+
+      '<style id="app-style">'+STYLE+'</style>\n</head>\n<body>\n<script id="state" type="application/json">'+json+'<\/script>\n'+
+      '<div id="root"></div>\n<div class="toast" id="toast"></div>\n<script id="app-script">'+APP+'<\/script>\n</body>\n</html>\n';
+  }
+
+  function save(msg){
+    render();
+    if(!artifact){toast('Heads up: sign-ups aren\'t saved on this version of the page yet.');return;}
+    busy=true;
+    artifact.publish(buildDoc()).then(function(){toast(msg);}).catch(function(err){
+      var c=(err&&(err.code||err.message))||'';
+      if(/not_granted|not_writer/.test(c)){readOnly=true;render();toast('This list is view-only for you.');}
+      else if(/conflict/.test(c)){toast('Someone else just updated the list — refreshing.');}
+      else toast('Couldn\'t save. Please try again.');
+    }).then(function(){busy=false;});
+  }
+
+  function needName(){
+    var el=document.getElementById('me');
+    myName=(el&&el.value.trim())||'';
+    if(!myName){toast('Type your name first 🙂');if(el)el.focus();return true;}
+    try{localStorage.setItem('tg-name',myName);}catch(e){}
+    return false;
+  }
+
+  document.addEventListener('input',function(e){if(e.target.id==='me'){myName=e.target.value;try{localStorage.setItem('tg-name',myName.trim());}catch(x){}refreshUndo();}});
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b||busy)return;
+    var id=b.getAttribute('data-claim'), uid=b.getAttribute('data-undo');
+    if(id){ if(needName())return; var it=STATE.items.find(function(i){return i.id===id;}); if(!it||it.who)return; it.who=myName; save('Thanks, '+myName+'! You\'re bringing '+it.name+'.'); }
+    if(uid){ var u=STATE.items.find(function(i){return i.id===uid;}); if(!u||!mine(u.who))return; var n=u.name; u.who=''; save(n+' is open again.'); }
+  });
+  document.addEventListener('submit',function(e){
+    var f=e.target.closest('form.add'); if(!f)return; e.preventDefault(); if(busy)return;
+    var inp=f.querySelector('input'), dish=inp.value.trim(); if(!dish)return;
+    if(needName())return;
+    STATE.items.push({id:'x'+Date.now().toString(36),cat:f.getAttribute('data-cat'),name:dish,who:myName});
+    save('Added '+dish+' — thanks, '+myName+'!');
+  });
+
+  render();
+  if(window.claude&&window.claude.use){
+    window.claude.use('artifact').then(function(a){artifact=a;}).catch(function(){});
+  }
+})();
+</script>
 </body>
 </html>
