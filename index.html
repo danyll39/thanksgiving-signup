@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thanksgiving Sign-Up</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap">
-<style id="app-style">
+<style>
 :root{--bg:#fbf5ec;--card:#fffdf9;--ink:#3a2a1e;--muted:#8a7362;--line:#ecdfcd;--accent:#c4561f;--accent2:#8f3b14;--leaf:#6b7a2e;--soft:#f6e6d3}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
@@ -46,20 +46,23 @@ button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:10px;p
 .toast.show{transform:translateX(-50%) translateY(0)}
 .note{text-align:center;color:var(--muted);font-size:13px;margin-top:28px}
 .ro .claim,.ro .undo,.ro .add{display:none}
+.status{text-align:center;color:var(--muted);padding:30px 10px}
+.status.err{color:var(--accent2)}
+button:disabled{opacity:.55;cursor:default}
 </style>
 </head>
 <body>
-<script id="state" type="application/json">{"title":"Thanksgiving Potluck","when":"Thursday, November 26","items":[{"id":"a1","cat":"Mains","name":"Turkey","who":""},{"id":"a2","cat":"Mains","name":"Ham","who":""},{"id":"a3","cat":"Mains","name":"Vegetarian main","who":""},{"id":"b1","cat":"Sides","name":"Mashed potatoes","who":""},{"id":"b2","cat":"Sides","name":"Stuffing","who":""},{"id":"b3","cat":"Sides","name":"Gravy","who":""},{"id":"b4","cat":"Sides","name":"Green bean casserole","who":""},{"id":"b5","cat":"Sides","name":"Sweet potatoes","who":""},{"id":"b6","cat":"Sides","name":"Mac and cheese","who":""},{"id":"b7","cat":"Sides","name":"Cranberry sauce","who":""},{"id":"b8","cat":"Sides","name":"Dinner rolls","who":""},{"id":"b9","cat":"Sides","name":"Salad","who":""},{"id":"c1","cat":"Appetizers","name":"Cheese and crackers","who":""},{"id":"c2","cat":"Appetizers","name":"Veggie tray","who":""},{"id":"c3","cat":"Appetizers","name":"Deviled eggs","who":""},{"id":"d1","cat":"Desserts","name":"Pumpkin pie","who":""},{"id":"d2","cat":"Desserts","name":"Apple pie","who":""},{"id":"d3","cat":"Desserts","name":"Pecan pie","who":""},{"id":"d4","cat":"Desserts","name":"Whipped cream / ice cream","who":""},{"id":"e1","cat":"Drinks","name":"Wine","who":""},{"id":"e2","cat":"Drinks","name":"Cider / soda","who":""},{"id":"e3","cat":"Drinks","name":"Coffee","who":""},{"id":"f1","cat":"Supplies","name":"Plates, cups and napkins","who":""},{"id":"f2","cat":"Supplies","name":"Ice","who":""},{"id":"f3","cat":"Supplies","name":"To-go containers","who":""}]}</script>
 <div id="root"></div>
 <div class="toast" id="toast"></div>
-<script id="app-script">
+<script>
 (function(){
-  var STATE = JSON.parse(document.getElementById('state').textContent);
+  // Paste your Google Apps Script web app URL here (it ends in /exec).
+  var SCRIPT_URL = '';
+
+  var TITLE = 'Thanksgiving Potluck', WHEN = 'Thursday, November 26';
   var ICONS = {Mains:'🦃',Sides:'🥔',Appetizers:'🧀',Desserts:'🥧',Drinks:'🍷',Supplies:'🍽️'};
   var ORDER = ['Mains','Sides','Appetizers','Desserts','Drinks','Supplies'];
-  var STYLE = document.getElementById('app-style').textContent;
-  var APP = document.getElementById('app-script').textContent;
-  var artifact = null, readOnly = false, busy = false;
+  var items = null, busy = false, loadError = '';
   var myName = '';
   try { myName = localStorage.getItem('tg-name') || ''; } catch(e){}
 
@@ -67,47 +70,60 @@ button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:10px;p
   function norm(s){return String(s||'').trim().toLowerCase().replace(/\s+/g,' ');}
   function mine(who){return !!norm(myName)&&norm(who)===norm(myName);}
   function refreshUndo(){document.querySelectorAll('[data-undo]').forEach(function(b){b.hidden=!mine(b.getAttribute('data-who'));});}
-  function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show');},2600);}
+  function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show');},2800);}
 
   function render(){
-    var total=STATE.items.length, done=STATE.items.filter(function(i){return i.who;}).length;
-    var cats=ORDER.slice(); STATE.items.forEach(function(i){if(cats.indexOf(i.cat)<0)cats.push(i.cat);});
-    var h='<div class="wrap'+(readOnly?' ro':'')+'"><header><div class="leaf">🍂</div><h1>'+esc(STATE.title)+'</h1><p class="sub">'+esc(STATE.when)+' · Pick a dish to bring</p>'+
-      '<div class="progress"><div class="bar"><i style="width:'+(total?Math.round(done/total*100):0)+'%"></i></div><div class="ptext">'+done+' of '+total+' covered</div></div></header>';
-    if(!readOnly) h+='<div class="namebox"><label for="me">Your name</label><input id="me" type="text" maxlength="40" placeholder="e.g. Aunt Linda" value="'+esc(myName)+'"></div>';
+    var root=document.getElementById('root');
+    var focused=document.activeElement, keep=focused&&focused.id==='me'?[focused.selectionStart,focused.selectionEnd]:null;
+    var addDrafts={}; document.querySelectorAll('form.add').forEach(function(f){var v=f.querySelector('input').value;if(v)addDrafts[f.getAttribute('data-cat')]=v;});
+    var h='<div class="wrap"><header><div class="leaf">🍂</div><h1>'+esc(TITLE)+'</h1><p class="sub">'+esc(WHEN)+' · Pick a dish to bring</p>';
+    if(items){
+      var total=items.length, done=items.filter(function(i){return i.who;}).length;
+      h+='<div class="progress"><div class="bar"><i style="width:'+(total?Math.round(done/total*100):0)+'%"></i></div><div class="ptext">'+done+' of '+total+' covered</div></div>';
+    }
+    h+='</header>';
+    if(!items){
+      h+='<p class="status'+(loadError?' err':'')+'">'+esc(loadError||'Loading the list…')+'</p></div>';
+      root.innerHTML=h; return;
+    }
+    h+='<div class="namebox"><label for="me">Your name</label><input id="me" type="text" maxlength="40" placeholder="e.g. Aunt Linda" value="'+esc(myName)+'"></div>';
+    var cats=ORDER.slice(); items.forEach(function(i){if(cats.indexOf(i.cat)<0)cats.push(i.cat);});
     cats.forEach(function(cat){
-      var items=STATE.items.filter(function(i){return i.cat===cat;});
-      var open=items.filter(function(i){return !i.who;}).length;
-      h+='<section><h2>'+(ICONS[cat]||'🍴')+' '+esc(cat)+'<small>'+(open?open+' open':'all set ✓')+'</small></h2><div class="list">';
-      items.forEach(function(i){
+      var list=items.filter(function(i){return i.cat===cat;});
+      var open=list.filter(function(i){return !i.who;}).length;
+      h+='<section><h2>'+(ICONS[cat]||'🍴')+' '+esc(cat)+'<small>'+(!list.length?'':open?open+' open':'all set ✓')+'</small></h2><div class="list">';
+      list.forEach(function(i){
         h+='<div class="row'+(i.who?' taken':'')+'"><span class="check">'+(i.who?'✓':'')+'</span><div class="dish"><b>'+esc(i.name)+'</b>'+
           (i.who?'<span class="who">'+esc(i.who)+' is bringing this</span>':'<span class="open">Still needed</span>')+'</div>'+
-          (i.who?'<button class="undo" data-undo="'+i.id+'" data-who="'+esc(i.who)+'"'+(mine(i.who)?'':' hidden')+'>Remove</button>':'<button class="claim" data-claim="'+i.id+'">I\'ll bring it</button>')+'</div>';
+          (i.who?'<button class="undo" data-undo="'+esc(i.id)+'" data-who="'+esc(i.who)+'"'+(mine(i.who)?'':' hidden')+(busy?' disabled':'')+'>Remove</button>'
+                :'<button class="claim" data-claim="'+esc(i.id)+'"'+(busy?' disabled':'')+'>I\'ll bring it</button>')+'</div>';
       });
-      h+='<form class="add" data-cat="'+esc(cat)+'"><input type="text" maxlength="60" placeholder="Bringing something else?"><button type="submit">Add</button></form></div></section>';
+      h+='<form class="add" data-cat="'+esc(cat)+'"><input type="text" maxlength="60" placeholder="Bringing something else?" value="'+esc(addDrafts[cat]||'')+'"><button type="submit"'+(busy?' disabled':'')+'>Add</button></form></div></section>';
     });
-    h+='<p class="note">'+(readOnly?'This list is view-only for you.':'Your sign-up saves for everyone automatically.')+'</p></div>';
-    document.getElementById('root').innerHTML=h;
+    h+='<p class="note">Your sign-up saves for everyone automatically.</p></div>';
+    root.innerHTML=h;
+    if(keep){var me=document.getElementById('me');me.focus();try{me.setSelectionRange(keep[0],keep[1]);}catch(e){}}
   }
 
-  function buildDoc(){
-    var json=JSON.stringify(STATE).replace(/</g,'\\u003c');
-    return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Thanksgiving Sign-Up</title>\n'+
-      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap">\n'+
-      '<style id="app-style">'+STYLE+'</style>\n</head>\n<body>\n<script id="state" type="application/json">'+json+'<\/script>\n'+
-      '<div id="root"></div>\n<div class="toast" id="toast"></div>\n<script id="app-script">'+APP+'<\/script>\n</body>\n</html>\n';
+  function load(){
+    if(!SCRIPT_URL){loadError='This list isn\'t connected to its Google Sheet yet.';render();return;}
+    if(busy)return;
+    fetch(SCRIPT_URL).then(function(r){return r.json();}).then(function(d){
+      if(busy)return;
+      if(d&&d.items){items=d.items;loadError='';}
+      render();
+    }).catch(function(){ if(!items){loadError='Couldn\'t load the list. Please refresh the page.';render();} });
   }
 
-  function save(msg){
-    render();
-    if(!artifact){toast('Heads up: sign-ups aren\'t saved on this version of the page yet.');return;}
-    busy=true;
-    artifact.publish(buildDoc()).then(function(){toast(msg);}).catch(function(err){
-      var c=(err&&(err.code||err.message))||'';
-      if(/not_granted|not_writer/.test(c)){readOnly=true;render();toast('This list is view-only for you.');}
-      else if(/conflict/.test(c)){toast('Someone else just updated the list — refreshing.');}
-      else toast('Couldn\'t save. Please try again.');
-    }).then(function(){busy=false;});
+  function send(payload){
+    if(!SCRIPT_URL){toast('This list isn\'t connected yet.');return;}
+    busy=true; render();
+    payload.name=myName.trim();
+    fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d.items)items=d.items; toast(d.ok?d.message:d.error); })
+      .catch(function(){ toast('Couldn\'t save. Please try again.'); })
+      .then(function(){ busy=false; render(); });
   }
 
   function needName(){
@@ -120,23 +136,22 @@ button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:10px;p
 
   document.addEventListener('input',function(e){if(e.target.id==='me'){myName=e.target.value;try{localStorage.setItem('tg-name',myName.trim());}catch(x){}refreshUndo();}});
   document.addEventListener('click',function(e){
-    var b=e.target.closest('button'); if(!b||busy)return;
+    var b=e.target.closest('button'); if(!b||busy||b.disabled)return;
     var id=b.getAttribute('data-claim'), uid=b.getAttribute('data-undo');
-    if(id){ if(needName())return; var it=STATE.items.find(function(i){return i.id===id;}); if(!it||it.who)return; it.who=myName; save('Thanks, '+myName+'! You\'re bringing '+it.name+'.'); }
-    if(uid){ var u=STATE.items.find(function(i){return i.id===uid;}); if(!u||!mine(u.who))return; var n=u.name; u.who=''; save(n+' is open again.'); }
+    if(id){ if(needName())return; send({action:'claim',id:id}); }
+    if(uid){ if(needName())return; send({action:'remove',id:uid}); }
   });
   document.addEventListener('submit',function(e){
     var f=e.target.closest('form.add'); if(!f)return; e.preventDefault(); if(busy)return;
     var inp=f.querySelector('input'), dish=inp.value.trim(); if(!dish)return;
     if(needName())return;
-    STATE.items.push({id:'x'+Date.now().toString(36),cat:f.getAttribute('data-cat'),name:dish,who:myName});
-    save('Added '+dish+' — thanks, '+myName+'!');
+    inp.value='';
+    send({action:'add',cat:f.getAttribute('data-cat'),dish:dish});
   });
 
-  render();
-  if(window.claude&&window.claude.use){
-    window.claude.use('artifact').then(function(a){artifact=a;}).catch(function(){});
-  }
+  render(); load();
+  setInterval(function(){ if(!document.hidden)load(); },20000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden)load(); });
 })();
 </script>
 </body>
