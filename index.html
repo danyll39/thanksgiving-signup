@@ -125,7 +125,7 @@ button:disabled{opacity:.55;cursor:default}
   function send(payload){
     if(!SCRIPT_URL){toast('This list isn\'t connected yet.');return;}
     busy=true; render();
-    payload.first=me.first.trim(); payload.last=me.last.trim(); payload.code=me.code;
+    payload.first=me.first.trim(); payload.last=me.last.trim(); payload.code=me.code; payload.name=fullName();
     fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
       .then(function(r){return r.json();})
       .then(function(d){ if(d.items)items=d.items; toast(d.ok?d.message:d.error); })
